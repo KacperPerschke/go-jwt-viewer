@@ -1,11 +1,12 @@
 package main
 
-import "fmt"
-
 func main() {
-	tokenEncrypted, err := readData()
-	if err != nil {
-		panic(err)
+	tokenEncrypted, errR := readData()
+	if errR != nil {
+		panic(errR)
 	}
-	fmt.Printf(`%#v`, tokenEncrypted)
+	errP := parseAndShow(tokenEncrypted)
+	if errP != nil {
+		panic(errP)
+	}
 }
