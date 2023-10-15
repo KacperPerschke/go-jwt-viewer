@@ -32,12 +32,12 @@ func readData() (string, error) {
 	}
 
 	if fCont == EmptyString && inCont == EmptyString {
-		return EmptyString, errors.New(`Nie dostałem danych ani w postaci nazwy pliku, a jako strumień na STDIN`)
+		return EmptyString, errors.New(`I did not receive the data in the form of a file name nor as a stream on STDIN`)
 
 	}
 
 	if fCont != EmptyString && inCont != EmptyString {
-		return EmptyString, errors.New(`Dostałem dane jednocześnie w postaci pliku, a jako strumień na STDIN`)
+		return EmptyString, errors.New(`I received the data both as a file and as a stream on STDIN`)
 	}
 
 	if fCont != EmptyString {
@@ -53,19 +53,19 @@ func readFile() (string, error) {
 		return EmptyString, nil
 	}
 	if len(argsWithoutProg) > 1 {
-		return EmptyString, errors.New(`Dostałem więcej argumentów wywołania niż jeden`)
+		return EmptyString, errors.New(`I got more call arguments than one`)
 	}
 
 	fName := argsWithoutProg[0]
 	fInfo, err := os.Stat(fName)
 	if errors.Is(err, os.ErrNotExist) {
-		return EmptyString, fmt.Errorf(`%s nie istnieje`, fName)
+		return EmptyString, err
 	}
 	if fInfo.IsDir() {
-		return EmptyString, fmt.Errorf(`%s jest katalogiem`, fName)
+		return EmptyString, fmt.Errorf(`%s is a directrory, but not a file`, fName)
 	}
 	if fInfo.Size() == 0 {
-		return EmptyString, fmt.Errorf(`%s jest pusty`, fName)
+		return EmptyString, fmt.Errorf(`%s is empty`, fName)
 	}
 
 	buf, err := ioutil.ReadFile(fName)
@@ -75,7 +75,7 @@ func readFile() (string, error) {
 
 	s, err := byteToStrAndValidate(buf)
 	if errors.Is(err, errMultiLineString) {
-		return EmptyString, fmt.Errorf(`%s zawiera więcej niż jeden wiersz`, fName)
+		return EmptyString, fmt.Errorf(`%s contains more than one line`, fName)
 	}
 
 	return s, nil
@@ -97,7 +97,7 @@ func readSTDIN() (string, error) {
 	}
 	s, err := byteToStrAndValidate(buf)
 	if errors.Is(err, errMultiLineString) {
-		return EmptyString, errors.New(`na STDIN dostałem więcej niż jeden wiersz`)
+		return EmptyString, errors.New(`on STDIN I got more than one line`)
 	}
 	return s, nil
 }

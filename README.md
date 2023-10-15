@@ -6,6 +6,5 @@ Some enterprises are afraid to use a [publicly available JWT decoder](https://jw
 I hope this program can meet your need for a private decoder.
 
 ## Comment
-I copied the example and I see two obstructions.
+I see one obstruction.
 1. My knowledge of JWT is very little.
-1. I made the error messages partly in Polish and partly in English.
