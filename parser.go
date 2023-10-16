@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -28,13 +29,18 @@ func parseAndFormat(jwtS string) (string, error) {
 		return EmptyString, err
 	}
 
-	/* What does it tell to me?
-	 * alg := fmt.Sprintf("%v", token.Header["alg"])
-	 * m := jwt.GetSigningMethod(alg)
-	 * fmt.Printf("\n\n→ %s ←\n\n", m)
-	 */
+	alg := fmt.Sprintf("%s", token.Header["alg"])
+	algFS := strings.Replace(alg, "HS", "HMACSHA", -1)
+	signatureFormated := strings.Join(
+		[]string{
+			fmt.Sprintf(`%s(`, algFS),
+			`    base64UrlEncode(header) + "." + base64UrlEncode(payload),`,
+			`    your-256-bit-secret`,
+			`)`,
+		},
+		"\n",
+	)
 
-	signatureFormated := "{\n    YYY… we don't parse for now.\n}"
 	out := fmt.Sprintf(
 		"===\nHeader →\n%s\nClaims →\n%s\nSignature →\n%s\n===\n",
 		headerFormatted,
