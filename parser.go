@@ -3,12 +3,18 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
 const JSONOutIndent = "    "
+
+var (
+	expRe *regexp.Regexp = regexp.MustCompile(`(?m)^( +"exp": )\d+,$`)
+	iatRe *regexp.Regexp = regexp.MustCompile(`(?m)^( +"iat": )\d+,$`)
+)
 
 func parseAndFormat(jwtS string) (string, error) {
 	p := jwt.NewParser()
@@ -24,9 +30,39 @@ func parseAndFormat(jwtS string) (string, error) {
 	if err != nil {
 		return EmptyString, err
 	}
-	claimsFormated, err := json.MarshalIndent(token.Claims, "", JSONOutIndent)
+
+	bs, err := json.MarshalIndent(token.Claims, "", JSONOutIndent)
 	if err != nil {
 		return EmptyString, err
+	}
+	claimsFormated := string(bs)
+	exp, err := token.Claims.GetExpirationTime()
+	if err != nil {
+		return EmptyString, err
+	}
+	if exp != nil {
+		tmpClaims := expRe.ReplaceAllString(
+			claimsFormated,
+			fmt.Sprintf(
+				`${1}"%+v",`, // Read the expRe definition!
+				exp,
+			),
+		)
+		claimsFormated = tmpClaims
+	}
+	iat, err := token.Claims.GetIssuedAt()
+	if err != nil {
+		return EmptyString, err
+	}
+	if iat != nil {
+		tmpClaims := iatRe.ReplaceAllString(
+			claimsFormated,
+			fmt.Sprintf(
+				`${1}"%+v",`, // Read the iatRe definition!
+				iat,
+			),
+		)
+		claimsFormated = tmpClaims
 	}
 
 	alg := fmt.Sprintf("%s", token.Header["alg"])
