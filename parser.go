@@ -9,11 +9,15 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-const JSONOutIndent = "    "
+const (
+	jsonOutIndent   = "    "
+	regexTemplate   = `(?m)^( +"%s": )\d+,$`
+	replaceTemplate = `${1}"%+v",`
+)
 
 var (
-	expRe *regexp.Regexp = regexp.MustCompile(`(?m)^( +"exp": )\d+,$`)
-	iatRe *regexp.Regexp = regexp.MustCompile(`(?m)^( +"iat": )\d+,$`)
+	expRe *regexp.Regexp = regexp.MustCompile(fmt.Sprintf(regexTemplate, "exp"))
+	iatRe *regexp.Regexp = regexp.MustCompile(fmt.Sprintf(regexTemplate, "iat"))
 )
 
 func parseAndFormat(jwtS string) (string, error) {
@@ -26,12 +30,12 @@ func parseAndFormat(jwtS string) (string, error) {
 		return EmptyString, err
 	}
 
-	headerFormatted, err := json.MarshalIndent(token.Header, "", JSONOutIndent)
+	headerFormatted, err := json.MarshalIndent(token.Header, "", jsonOutIndent)
 	if err != nil {
 		return EmptyString, err
 	}
 
-	bs, err := json.MarshalIndent(token.Claims, "", JSONOutIndent)
+	bs, err := json.MarshalIndent(token.Claims, "", jsonOutIndent)
 	if err != nil {
 		return EmptyString, err
 	}
@@ -43,10 +47,7 @@ func parseAndFormat(jwtS string) (string, error) {
 	if exp != nil {
 		tmpClaims := expRe.ReplaceAllString(
 			claimsFormated,
-			fmt.Sprintf(
-				`${1}"%+v",`, // Read the expRe definition!
-				exp,
-			),
+			fmt.Sprintf(replaceTemplate, exp),
 		)
 		claimsFormated = tmpClaims
 	}
@@ -57,10 +58,7 @@ func parseAndFormat(jwtS string) (string, error) {
 	if iat != nil {
 		tmpClaims := iatRe.ReplaceAllString(
 			claimsFormated,
-			fmt.Sprintf(
-				`${1}"%+v",`, // Read the iatRe definition!
-				iat,
-			),
+			fmt.Sprintf(replaceTemplate, iat),
 		)
 		claimsFormated = tmpClaims
 	}
